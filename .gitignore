@@ -1,5 +1,4 @@
 .DS_Store
-api.js
 gitignore
 node_modules
 package.json
