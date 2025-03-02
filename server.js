@@ -6,7 +6,7 @@ require('./api.js');
 // SERVER CONFIG 
 IP = '192.168.0.107'
 PORT = 12345 ;
-
+//TO DO , check for sockets during interuption . (APIs)
 // Global variable for Light A and B 
 global.socketA = null; 
 global.socketB = null;
