@@ -1,7 +1,7 @@
 const net = require('net');
 const { TrafficLight } = require('./TrafficLight');
 const { goRed, goYellow, goGreen, goBlink, sendKeepAlive } = require('./TrafficLightActions');
-const { handleInterrupt, resetBegin, sleep } = require('./loopFunctions');
+const {  handleInterrupt , resetBegin, sleep } = require('./InterruptHandling');
 require('./api.js');
 // SERVER CONFIG 
 IP = '192.168.0.107'
@@ -14,8 +14,6 @@ global.socketB = null;
 global.A_Status = 0x00; 
 global.B_Status = 0x00;
 global.interrupt = 0x00;
-// global.Light_A = null;
-// global.Light_B = null;
 //variable to check if the arduino sends response and confirmation after recieving requests
 global.keepAliveA = true;
 global.keepAliveB = true;
@@ -25,9 +23,11 @@ global.currentLight = 'A';
 // here you can change the time .
 const redDuration = 3000;
 const yellowDuration = 2000;
-const greenDuration = 10000;
+const greenDuration = 5000;
 let remainingTime = redDuration;
 let previousTime = Date.now();
+// Variable for change status API
+global.interrupt = 0x00 ; 
 
 const server = net.createServer((socket) => {
     console.log('Client connected');
@@ -112,12 +112,23 @@ async function begin() {
 }
 
 async function loop() {
+    // console.log('Current light before ' , global.currentLight);
     if (!global.keepAliveA || !global.keepAliveB) {
         global.socketA = global.keepAliveA ? global.socketA : null;
         global.socketB = global.keepAliveB ? global.socketB : null;
         console.log("⚠️ One or both Arduinos not responding! Pausing...");
         return waitForReconnect();
     }
+
+    if(global.interrupt != 0x00) {
+        console.log('INTERRUPT : ' , global.interrupt);
+        await handleInterrupt();
+        // console.log('Current light after ' , global.currentLight);
+    }
+
+    
+
+
 
     const currentTime = Date.now();
     if (currentTime - previousTime >= remainingTime) {
@@ -194,3 +205,5 @@ let intervalId = setInterval(() => {
         console.log("Waiting for clients...");
     }
 }, 1000);
+
+

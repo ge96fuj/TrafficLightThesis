@@ -8,21 +8,23 @@ app.use(express.json());
 
 
 
-// GET route to get the current status of the traffic light
+
 app.get('/status/A', (req, res) => {
     console.log('current STATUS OF A is :',global.A_Status);
+    res.json({ A_Status: global.A_Status });
 
 });
 
 app.get('/status/B', (req, res) => {
     console.log('current STATUS OF B is :',global.B_Status);
+    res.json({ B_Status: global.B_Status });
 
 });
 
 app.get('/changeGreen/A', (req, res) => {
     console.log('Changing Status ');
     global.interrupt = 0x50 ;
-    //if there is already an interrupt . we should handle that
+    //if there is already an interrupt . we should handle that TODO:
 
 });
 

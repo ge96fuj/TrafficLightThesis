@@ -92,7 +92,7 @@ void connectToServer() {
 
     
     Serial.println("Connection failed, retrying...");
-    delay(1000);  
+    delay(100);  
   
 }
 }

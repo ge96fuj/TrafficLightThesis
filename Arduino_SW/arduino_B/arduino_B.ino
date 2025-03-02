@@ -40,27 +40,32 @@ void loop() {
 }
 
 unsigned long previousMillis = 0;
-const long interval = 500;
+const long interval = 10;
 
 void connectToServer() {
     digitalWrite(red, LOW);
     digitalWrite(green, LOW);
-    
-    Serial.print("Connecting to server...");
-    unsigned long startAttemptTime = millis(); 
 
-    while (!client.connect(serverIP, serverPort)) {  // Ensure 'serverPort' is properly declared
-        if (millis() - startAttemptTime > 5000) { // Timeout after 5 seconds
-            Serial.println("\nServer connection failed. Retrying later...");
-            return;
+    Serial.print("Connecting to server...");
+    unsigned long previousBlinkMillis = millis();  // Track the last blink time
+    const unsigned long blinkInterval = 1000;  // 1-second interval for blinking
+
+    while (!client.connect(serverIP, serverPort)) {
+        unsigned long currentMillis = millis();
+
+        // Toggle yellow LED every 1 second
+        if (currentMillis - previousBlinkMillis >= blinkInterval) {
+            previousBlinkMillis = currentMillis;
+            digitalWrite(yellow, !digitalRead(yellow));
+            Serial.println("Connection failed, retrying...");
         }
-        
-        digitalWrite(yellow, !digitalRead(yellow)); // Blinking yellow
-        Serial.print(".");
-        delay(500);
+
+        delay(100);  // Short delay to avoid excessive processing
     }
 
-    Serial.println("\nConnected to server!");
+    // Once connected, turn off the yellow LED and indicate success
+    digitalWrite(yellow, LOW);
+    Serial.println("Connected to server!");
 }
 
 void sendStatus() {
