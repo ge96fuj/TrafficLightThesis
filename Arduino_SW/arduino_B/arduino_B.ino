@@ -5,7 +5,7 @@ char ssid[] = "SKA";
 char password[] = "55333932s"; 
 
 const char* serverIP = "192.168.0.107";  
-const int serverPort = 12345;  // Ensure this is included
+const int serverPort = 12345;  
 
 String A1_Status = "RED", A2_Status = "RED";
 uint16_t locX = 0x1234, locY = 0x200;
