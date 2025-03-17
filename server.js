@@ -3,20 +3,24 @@ const { TrafficLight } = require('./TrafficLight');
 const { goRed, goYellow, goGreen, goBlink, sendKeepAlive } = require('./TrafficLightActions');
 const {  handleInterrupt , resetBegin, sleep } = require('./InterruptHandling');
 require('./api.js');
+const { spawn } = require('child_process');
+
 // SERVER CONFIG 
-IP = '192.168.0.107'
+IP = '172.20.10.2'
 PORT = 12345 ;
 //TO DO , check for sockets during interuption . (APIs)
 // Global variable for Light A and B 
 global.socketA = null; 
 global.socketB = null;
+aBlink=false ;
+bBlink=false ;
 // Light Status 
 global.A_Status = 0x00; 
 global.B_Status = 0x00;
 global.interrupt = 0x00;
 //variable to check if the arduino sends response and confirmation after recieving requests
-global.keepAliveA = true;
-global.keepAliveB = true;
+global.keepAliveA = false;
+global.keepAliveB = false;
 // global.stopLoop = false;
 // current Light that server handle . 
 global.currentLight = 'A';
@@ -86,6 +90,10 @@ function handleReceivedMessage(data, socket) {
 }
 
 function addNewTrafficLight(parsedData, dataLength, socket) {
+    
+
+
+
     console.log('🚦 Adding Traffic Light...');
     console.log(`📏 Data length: ${dataLength}`);
     
@@ -99,6 +107,16 @@ function addNewTrafficLight(parsedData, dataLength, socket) {
         : (global.Light_B = new TrafficLight(lightID, loc_x, loc_y, lightStatus, socket), global.socketB = socket);
     
     console.log(`✅ NEW TRAFFIC LIGHT:`, JSON.stringify(newTrafficLight, null, 2));
+
+    if (lightID === "A2") {
+        global.keepAliveA= true
+        global.socketA = socket ; 
+     
+    } else if (lightID === "B2") {
+        global.keepAliveB = true ;
+        global.socketB = socket ; 
+    }
+
 }
 
 async function begin() {
@@ -108,11 +126,12 @@ async function begin() {
     await goRed(global.socketA, "A2");
     await goRed(global.socketB, "B2");
     global.A_Status = global.B_Status = 0x00;
+    
     loop();
 }
 
 async function loop() {
-    // console.log('Current light before ' , global.currentLight);
+
     if (!global.keepAliveA || !global.keepAliveB) {
         global.socketA = global.keepAliveA ? global.socketA : null;
         global.socketB = global.keepAliveB ? global.socketB : null;
@@ -123,7 +142,7 @@ async function loop() {
     if(global.interrupt != 0x00) {
         console.log('INTERRUPT : ' , global.interrupt);
         await handleInterrupt();
-        // console.log('Current light after ' , global.currentLight);
+
     }
 
     
@@ -182,28 +201,76 @@ async function updateTrafficLight(light) {
     light === 'A' ? global.A_Status++ : global.B_Status++;
 }
 
+
+intervalId = setInterval(() => {
+    if (global.Light_A && global.Light_B && global.socketA && global.socketB) {
+        clearInterval(intervalId);
+        clearTimeout(timeoutId); 
+        console.log("✅ Both clients connected. Starting system...");
+        // aBlink = false ; 
+        // bBlink = false ;
+        begin();
+    } else {
+        // if(global.socketA && !aBlink  ){
+        //     goBlink(global.socketA,"A2");
+        //     aBlink=true ;             
+
+        // }
+        // else if(global.socketB && !bBlink )  {
+        //     goBlink(global.socketB,"B2");
+        //     bBlink=true ; 
+
+        // }    
+       
+        console.log(" 🔄 Waiting for clients...");
+    }
+}, 1000);
+
+timeoutId = setTimeout(() => {
+    clearInterval(intervalId);
+    restartServer();
+}, 3000000);
+
+
 function waitForReconnect() {
     console.log("⏳ Waiting for Arduinos...");
+    
     let interval = setInterval(() => {
         if (global.socketA && global.socketB) {
             console.log("✅ Both Arduinos reconnected. Resuming...");
             global.keepAliveA = global.keepAliveB = true;
             clearInterval(interval);
+            clearTimeout(timeout); 
+            aBlink = false ; 
+            bBlink = false ;
             begin();
         } else {
+            if(global.socketA && !aBlink  ){
+                goBlink(global.socketA,"A2");
+                aBlink=true ;             
+            }
+            else if(global.socketB && !bBlink )  {
+                goBlink(global.socketB,"B2");
+                bBlink=true ; 
+            }    
             console.log("🔄 Still waiting for reconnection...");
         }
     }, 3000);
+
+    // Set a timeout to restart if reconnection fails within 30 seconds
+    let timeout = setTimeout(() => {
+        clearInterval(interval);
+        restartServer();
+    }, 30000000); 
 }
 
-let intervalId = setInterval(() => {
-    if (global.Light_A && global.Light_B && global.socketA && global.socketB) {
-        clearInterval(intervalId);
-        console.log("✅ Both clients connected. Starting system...");
-        begin();
-    } else {
-        console.log("Waiting for clients...");
-    }
-}, 1000);
 
+function restartServer() {
+    console.log("⏳ Clients did not connect within 10 seconds. Restarting server...");
+    spawn(process.argv[0], process.argv.slice(1), {
+        detached: true,
+        stdio: 'inherit'
+    });
+    process.exit();
+}
 

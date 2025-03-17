@@ -20,11 +20,11 @@ async function goRed(socket, lightID) {
                 console.log(`✅ ${lightID} responded.`);
                 resolve(true);
             } else {
-                console.log(`❌ ${lightID} did NOT respond in time!`);
+                console.log(`s❌ ${lightID} did NOT respond in time!`);
                 global.stopLoop = true;
                 resolve(false);
             }
-        }, 500);
+        }, 1000);
     });
 }
 
@@ -54,7 +54,7 @@ async function goYellow(socket, lightID) {
                 global.stopLoop = true;
                 resolve(false);
             }
-        }, 500);
+        }, 2000);
     });
 }
 
@@ -84,16 +84,49 @@ async function goGreen(socket, lightID) {
                 global.stopLoop = true;
                 resolve(false);
             }
-        }, 500);
+        }, 1000);
     });
 }
 
-function goBlink(socket) {
-    if (!socket) {
-        console.log('No client to send red signal');
-        return;
+function goBlink(socket,lightID) {
+    console.log("BLINK BEGIN")
+    if (lightID === "A2") {
+        global.keepAliveA = false;
+        console.log("A2" , lightID);
+    } else if (lightID === "B2") {
+        global.keepAliveB = false ;
+        console.log("B2" , lightID);
     }
-    socket.write(Buffer.from([0x23]));
+
+    if (!socket) {
+        console.log("!socket" , lightID);
+        global.stopLoop = true;
+        return false;
+    }
+
+    console.log("🟠🟠🟠  Sending BLINK Signal (0x25)...TO" , lightID);
+    socket.write(Buffer.from([0x25]));
+    // await sleep(200);
+
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            if ((lightID === "A2" && global.keepAliveA) || (lightID === "B2" && global.keepAliveB)) {
+                console.log(`✅ ${lightID} responded.`);
+                resolve(true);
+                if (lightID === "A2") {
+                    global.keepAliveA = true;
+                   
+                } else if (lightID === "B2") {
+                    global.keepAliveB = true ;
+                    
+                }
+            } else {
+                console.log(`❌ ${lightID} did NOT respond in time!`);
+                global.stopLoop = true;
+                resolve(false);
+            }
+        }, 1000);
+    });
 }
 
 function sendKeepAlive(socket, lightID) {

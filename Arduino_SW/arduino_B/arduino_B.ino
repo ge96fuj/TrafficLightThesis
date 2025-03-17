@@ -1,71 +1,110 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 
-char ssid[] = "SKA"; 
-char password[] = "55333932s"; 
+char ssid[] = "iPhone de Skander"; 
+char password[] = "123456789b"; 
 
-const char* serverIP = "192.168.0.107";  
-const int serverPort = 12345;  // Ensure this is included
+// Server Configuration
+const char* serverIP = "172.20.10.2"; 
+const int serverPort = 12345; 
 
-String A1_Status = "RED", A2_Status = "RED";
-uint16_t locX = 0x1234, locY = 0x200;
+// Traffic Light Pins
+const int redPin = 2; 
+const int yellowPin = 3; 
+const int greenPin = 4; 
 
-int red = 2, yellow = 3, green = 4;
 
-unsigned long redDuration = 5000, yellowDuration = 2000, greenDuration = 5000;
+// Traffic Light Location
+uint16_t locX = 0x1234;
+uint16_t locY = 0x200;
+
+// State Variables
 bool begin = false;
-
-enum TrafficLightStatus { RED, YELLOW_TO_GREEN, GREEN, YELLOW_TO_RED, YELLOW };
+bool blink = false;
 
 WiFiClient client;
-TrafficLightStatus currentState = RED;
 
 void setup() {
-    pinMode(red, OUTPUT);
-    pinMode(yellow, OUTPUT);
-    pinMode(green, OUTPUT);
+    // Initialize Serial Monitor
     Serial.begin(115200);
+    
+    // Set Pin Modes
+    pinMode(redPin, OUTPUT);
+    pinMode(yellowPin, OUTPUT);
+    pinMode(greenPin, OUTPUT);
+    
+    // Connect to Wi-Fi and Server
     connectToWiFi();
     connectToServer();
-    Serial.println("Messages sent!");
 }
 
 void loop() {
+    // Reconnect if the client is disconnected
     if (!client.connected()) {
         Serial.println("Lost connection to server, reconnecting...");
         client.stop();
         connectToServer();
     }
+    
     handleRequests();
 }
 
-unsigned long previousMillis = 0;
-const long interval = 10;
+void connectToWiFi() {
+    Serial.print("Connecting to Wi-Fi...");
+    WiFi.begin(ssid, password);
+    unsigned long startTime = millis();
+    
+    while (WiFi.status() != WL_CONNECTED) {
+        if (millis() - startTime >= 120000) {
+            Serial.println("More than 120 sec with no connection .. Restarting");
+            NVIC_SystemReset();
+        }
+        delay(5000);
+        Serial.print(".");
+    }
+    Serial.println("\nConnected to Wi-Fi");
+}
 
 void connectToServer() {
-    digitalWrite(red, LOW);
-    digitalWrite(green, LOW);
-
     Serial.print("Connecting to server...");
-    unsigned long previousBlinkMillis = millis();  // Track the last blink time
-    const unsigned long blinkInterval = 1000;  // 1-second interval for blinking
-
+    unsigned long startTime = millis();
+    
     while (!client.connect(serverIP, serverPort)) {
-        unsigned long currentMillis = millis();
-
-        // Toggle yellow LED every 1 second
-        if (currentMillis - previousBlinkMillis >= blinkInterval) {
-            previousBlinkMillis = currentMillis;
-            digitalWrite(yellow, !digitalRead(yellow));
-            Serial.println("Connection failed, retrying...");
+        if (millis() - startTime >= 30000) {
+            Serial.println("More than 30 sec with no connection .. Restarting");
+            NVIC_SystemReset();
         }
-
-        delay(100);  // Short delay to avoid excessive processing
+        Serial.println("Connection failed, retrying...");
+        digitalWrite(yellowPin, !digitalRead(yellowPin));
+        delay(500);
     }
-
-    // Once connected, turn off the yellow LED and indicate success
-    digitalWrite(yellow, LOW);
     Serial.println("Connected to server!");
+}
+
+void handleRequests() {
+
+    if (!client.connected()) {
+        Serial.println("Lost connection to server, reconnecting...");
+        client.stop();
+        connectToServer();
+    }
+    
+    if (client.available()) {
+       sendConfirmation();
+        char request = client.read();
+        Serial.print("Received request: ");
+        Serial.println(request, HEX);
+        
+        switch (request) {
+            case 0x20: sendStatus(); break;
+            case 0x21: goRed(); break;
+            case 0x22: goGreen(); break;
+            case 0x23: goYellow(); break;
+            case 0x24: sendLightStatus(); break;
+            case 0x25: goBlink(); break;
+            default: Serial.println("Unknown request received"); break;
+        }
+    }
 }
 
 void sendStatus() {
@@ -75,81 +114,66 @@ void sendStatus() {
     doc["loc_x"] = locX;
     doc["loc_y"] = locY;
     doc["lightStatus"] = currentState;
-
+    
     String jsonString;
     serializeJson(doc, jsonString);
     client.println(jsonString);
-    client.flush();  // Ensure message is fully sent
+    client.flush();
 }
-
-void handleRequests() {
-    if (client.available()) {
-        char request = client.read();
-        Serial.print("Received ");
-        Serial.print(request, HEX);
-        Serial.println(" from server");
-
-        switch (request) {
-            case 0x20: sendStatus(); break;
-            case 0x21: goRed(); break;
-            case 0x22: goGreen(); break;
-            case 0x23: goYellow(); break;
-            case 0x24: sendLightStatus(); break;
-            default: Serial.println("Can't understand the request received"); break;
-        }
-    }
-}
-
-void goRed() {
-    Serial.println("Going RED");
-    currentState = RED;
-    digitalWrite(red, HIGH);
-    digitalWrite(yellow, LOW);
-    digitalWrite(green, LOW);
-    sendConfirmation();
-
-}
-
-void goYellow() {
-    Serial.println("Going YELLOW");
-    currentState = YELLOW;
-    digitalWrite(red, LOW);
-    digitalWrite(yellow, HIGH);
-    digitalWrite(green, LOW);
-    sendConfirmation();
-}
-
-void goGreen() {
-    Serial.println("Going GREEN");
-    currentState = GREEN;
-    digitalWrite(red, LOW);
-    digitalWrite(yellow, LOW);
-    digitalWrite(green, HIGH);
-    sendConfirmation();
-}
-
-void sendLightStatus() {}
 
 void sendConfirmation() {
     StaticJsonDocument<200> doc;
     doc["command"] = 90;
     doc["lightID"] = "B2";
+    
     String jsonString;
     serializeJson(doc, jsonString);
     client.println(jsonString);
-    client.flush();  // Ensure message is fully sent
+    client.flush();
 }
 
-void connectToWiFi() {
-    Serial.print("Connecting to Wi-Fi...");
-    WiFi.begin(ssid, password);
+void goRed() {
+    blink = false;
+    Serial.println("Changing to RED");
+    currentState = RED;
+    digitalWrite(redPin, HIGH);
+    digitalWrite(yellowPin, LOW);
+    digitalWrite(greenPin, LOW);
+   // sendConfirmation();
+}
 
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        delay(500);  // Retry connection
+void goYellow() {
+    blink = false;
+    Serial.println("Changing to YELLOW");
+    currentState = YELLOW;
+    digitalWrite(redPin, LOW);
+    digitalWrite(yellowPin, HIGH);
+    digitalWrite(greenPin, LOW);
+    
+}
+
+void goGreen() {
+    blink = false;
+    Serial.println("Changing to GREEN");
+    currentState = GREEN;
+    digitalWrite(redPin, LOW);
+    digitalWrite(yellowPin, LOW);
+    digitalWrite(greenPin, HIGH);
+   // sendConfirmation();
+}
+
+void goBlink() {
+    //sendConfirmation();
+    blink = true;
+    
+    while (blink) {
+        Serial.println("Blinking...");
+        digitalWrite(yellowPin, !digitalRead(yellowPin));
+        delay(500);
+        handleRequests();
     }
-
-    Serial.println("\nConnected to Wi-Fi!");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    Serial.println("Blinking stopped");
 }
+
+void sendLightStatus(){}
+
