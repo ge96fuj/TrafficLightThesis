@@ -41,7 +41,7 @@
     async function fetchStatus() {
         try {
             const responseA = await fetch('/status/A');
-            const responseB = await fetch('/status/B'); // Adjust URL based on your backend
+            const responseB = await fetch('/status/B'); 
             const dataA = await responseA.json();
             const dataB = await responseB.json();
             
