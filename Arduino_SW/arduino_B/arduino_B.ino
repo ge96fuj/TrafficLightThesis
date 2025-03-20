@@ -1,15 +1,15 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 
-//char ssid[] = "TT_F668"; 
-//char password[] = "zsc4at941c"; 
+char ssid[] = "TT_F668"; 
+char password[] = "zsc4at941c"; 
 
 
-char ssid[] = "iPhone de Skander"; 
-char password[] = "123456789b"; 
+//char ssid[] = "iPhone de Skander"; 
+//char password[] = "123456789b"; 
 
 // Server Configuration
-const char* serverIP = "172.20.10.2"; 
+const char* serverIP = "192.168.1.21"; 
 const int serverPort = 12345; 
 
 // Traffic Light Pins
@@ -52,6 +52,8 @@ void loop() {
     // Reconnect if the client is disconnected
     if (!client.connected()) {
         Serial.println("Lost connection to server, reconnecting...");
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
         client.stop();
         connectToServer();
     }
@@ -102,7 +104,7 @@ void handleRequests() {
     }
     
     if (client.available()) {
-       sendConfirmation();
+     
         char request = client.read();
         Serial.print("Received request: ");
         Serial.println(request, HEX);

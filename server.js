@@ -6,7 +6,7 @@ require('./api.js');
 const { spawn } = require('child_process');
 
 // SERVER CONFIG 
-IP = '172.20.10.2' ;
+IP = '192.168.1.21' ;
 PORT = 12345 ;
 //TO DO , check for sockets during interuption . (APIs)
 // Global variable for Light A and B 
@@ -17,7 +17,7 @@ bBlink=false ;
 // Light Status 
 global.A_Status = 0x00; 
 global.B_Status = 0x00;
-global.interrupt = 0x00;
+global.interrupt = 0x00; 
 //variable to check if the arduino sends response and confirmation after recieving requests
 global.keepAliveA = false;
 global.keepAliveB = false;
@@ -133,10 +133,14 @@ async function begin() {
 
 async function loop() {
 
-    if (!global.keepAliveA || !global.keepAliveB) {
-        global.socketA = global.keepAliveA ? global.socketA : null;
-        global.socketB = global.keepAliveB ? global.socketB : null;
-        console.log("⚠️ One or both Arduinos not responding! Pausing...");
+    // if (!global.keepAliveA || !global.keepAliveB) {
+    //     global.socketA = global.keepAliveA ? global.socketA : null;
+    //     global.socketB = global.keepAliveB ? global.socketB : null;
+    //     console.log("⚠️ One or both Arduinos not responding! Pausing...");
+    //     return waitForReconnect();
+    // }
+
+    if(!global.socketA || !global.socketB){
         return waitForReconnect();
     }
 

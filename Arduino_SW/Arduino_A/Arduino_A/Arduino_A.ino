@@ -2,14 +2,14 @@
 #include <ArduinoJson.h>
 
 // Wi-Fi Credentials
-//char ssid[] = "TT_F668"; 
-//char password[] = "zsc4at941c"; 
+char ssid[] = "TT_F668"; 
+char password[] = "zsc4at941c"; 
 
-char ssid[] = "iPhone de Skander"; 
-char password[] = "123456789b"; 
+//char ssid[] = "iPhone de Skander"; 
+//char password[] = "123456789b"; 
 
 // Server Configuration
-const char* serverIP = "172.20.10.2"; 
+const char* serverIP = "192.168.1.21"; 
 const int serverPort = 12345; 
 
 enum TrafficLightState { RED, YELLOW, GREEN };
@@ -49,6 +49,8 @@ void setup() {
 void loop() {
     // Reconnect if the client is disconnected
     if (!client.connected()) {
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
         Serial.println("Lost connection to server, reconnecting...");
         client.stop();
         connectToServer();
@@ -101,7 +103,7 @@ void handleRequests() {
     }
     
     if (client.available()) {
-       sendConfirmation();
+   
         char request = client.read();
         Serial.print("Received request: ");
         Serial.println(request, HEX);

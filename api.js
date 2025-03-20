@@ -25,17 +25,20 @@ app.get('/changeGreen/A', (req, res) => {
     console.log('Api /changeGreen/A is Triggered  ');
 
     if (global.interrupt !== 0x00) {
+        console.log('There is already another Interrupt');
         return res.send("Interrupt already set!");
     }
 
     global.interrupt = 0x50 ;
-    //if there is already an interrupt . we should handle that TODO:
+  
 
 });
 
 app.get('/changeGreen/B', (req, res) => {
     if (global.interrupt !== 0x00) {
+        console.log('There is already another Interrupt');
         return res.send("Interrupt already set!");
+        
     }
     console.log('Changing Status ');
     global.interrupt = 0x51 ;
@@ -45,6 +48,7 @@ app.get('/changeGreen/B', (req, res) => {
 
 app.get('/fixGreen/A', (req, res) => {
     if (global.interrupt !== 0x00) {
+        console.log('There is already another Interrupt');
         return res.send("Interrupt already set!");
     }
     console.log('Fixing A to Green ');
@@ -55,6 +59,7 @@ app.get('/fixGreen/A', (req, res) => {
 
 app.get('/fixGreen/B', (req, res) => {
     if (global.interrupt !== 0x00) {
+        console.log('There is already another Interrupt');
         return res.send("Interrupt already set!");
     }
     console.log('Fixing B To Green  ');

@@ -210,8 +210,10 @@ async function handleInterrupt() {
           //wait for another interrupt 
           while (global.interrupt != 0x00) {
             await sleep(500);
-
           }
+          await goYellow(global.socketA, "A2");
+          await sleep(1000);
+          await goRed(global.socketA, "A2");
           global.currentLight = 'B';
           resetBegin();
         } else if (global.A_Status == 0x01) {
@@ -235,7 +237,6 @@ async function handleInterrupt() {
 
            while (global.interrupt != 0x00) {
             await sleep(500);
-
           }
 
           await goYellow(global.socketA, "A2");
@@ -281,6 +282,10 @@ async function handleInterrupt() {
             await sleep(500);
 
           }
+          await goYellow(global.socketA, "A2");
+          await sleep(1000);
+          await goRed(global.socketA, "A2");
+
           global.currentLight = 'B';
           resetBegin();
 
@@ -305,6 +310,10 @@ async function handleInterrupt() {
             await sleep(500);
 
           }
+          await goYellow(global.socketA, "A2");
+          await sleep(1000);
+          await goRed(global.socketA, "A2");
+
           global.currentLight = 'B';
           resetBegin();
 
@@ -325,6 +334,9 @@ async function handleInterrupt() {
             await sleep(500);
 
           }
+          await goYellow(global.socketA, "A2");
+          await sleep(1000);
+          await goRed(global.socketA, "A2");
           global.currentLight = 'B';
           
           resetBegin();
@@ -425,6 +437,7 @@ async function handleInterrupt() {
         } else if (global.A_Status == 0x03) {
           await goRed(global.socketA, "A2");
           global.A_Status = 0x00;
+          await sleep(1000);
           await goYellow(global.socketA, "B2");
           global.B_Status = 0x01;
           await sleep(1000);
@@ -440,6 +453,7 @@ async function handleInterrupt() {
           global.B_Status = 0x00;         
           global.currentLight = 'A';
           resetBegin();
+          await sleep(1000);
         }
         break;
 
