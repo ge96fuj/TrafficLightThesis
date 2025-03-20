@@ -20,11 +20,14 @@ async function goRed(socket, lightID) {
                 console.log(`✅ ${lightID} responded.`);
                 resolve(true);
             } else {
-                console.log(`s❌ ${lightID} did NOT respond in time!`);
+                console.log(`❌ ${lightID} did NOT respond in time!`);
                 global.stopLoop = true;
                 resolve(false);
+                socket.end();
+          
+
             }
-        }, 1000);
+        }, 2000);
     });
 }
 
@@ -53,6 +56,9 @@ async function goYellow(socket, lightID) {
                 console.log(`❌ ${lightID} did NOT respond in time!`);
                 global.stopLoop = true;
                 resolve(false);
+                socket.end();
+              
+
             }
         }, 2000);
     });
@@ -83,8 +89,11 @@ async function goGreen(socket, lightID) {
                 console.log(`❌ ${lightID} did NOT respond in time!`);
                 global.stopLoop = true;
                 resolve(false);
+                socket.end();
+                
+
             }
-        }, 1000);
+        }, 2000);
     });
 }
 
@@ -102,6 +111,7 @@ function goBlink(socket,lightID) {
         console.log("!socket" , lightID);
         global.stopLoop = true;
         return false;
+        
     }
 
     console.log("🟠🟠🟠  Sending BLINK Signal (0x25)...TO" , lightID);
@@ -124,8 +134,10 @@ function goBlink(socket,lightID) {
                 console.log(`❌ ${lightID} did NOT respond in time!`);
                 global.stopLoop = true;
                 resolve(false);
+                socket.end();
+                return waitForReconnect();
             }
-        }, 1000);
+        }, 2000);
     });
 }
 

@@ -6,7 +6,7 @@ require('./api.js');
 const { spawn } = require('child_process');
 
 // SERVER CONFIG 
-IP = '172.20.10.2'
+IP = '172.20.10.2' ;
 PORT = 12345 ;
 //TO DO , check for sockets during interuption . (APIs)
 // Global variable for Light A and B 
@@ -85,6 +85,7 @@ function handleReceivedMessage(data, socket) {
                 console.log(`❌ Command not found: ${command}`);
         }
     } catch (error) {
+        socket.end();
         console.log('❌ JSON parsing error:', error.message);
     }
 }
@@ -229,7 +230,7 @@ intervalId = setInterval(() => {
 timeoutId = setTimeout(() => {
     clearInterval(intervalId);
     restartServer();
-}, 3000000);
+}, 60000);
 
 
 function waitForReconnect() {
@@ -261,7 +262,7 @@ function waitForReconnect() {
     let timeout = setTimeout(() => {
         clearInterval(interval);
         restartServer();
-    }, 30000000); 
+    }, 60000); 
 }
 
 

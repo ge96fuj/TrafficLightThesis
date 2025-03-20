@@ -2,6 +2,9 @@
 #include <ArduinoJson.h>
 
 // Wi-Fi Credentials
+//char ssid[] = "TT_F668"; 
+//char password[] = "zsc4at941c"; 
+
 char ssid[] = "iPhone de Skander"; 
 char password[] = "123456789b"; 
 
@@ -9,13 +12,14 @@ char password[] = "123456789b";
 const char* serverIP = "172.20.10.2"; 
 const int serverPort = 12345; 
 
+enum TrafficLightState { RED, YELLOW, GREEN };
+TrafficLightState currentState;
 
 
 // Traffic Light Pins
 const int redPin = 2; 
 const int yellowPin = 3; 
 const int greenPin = 4; 
-
 
 
 // Traffic Light Location
@@ -72,6 +76,8 @@ void connectToWiFi() {
 void connectToServer() {
     Serial.print("Connecting to server...");
     unsigned long startTime = millis();
+    digitalWrite(redPin, LOW);
+    digitalWrite(greenPin, LOW);
     
     while (!client.connect(serverIP, serverPort)) {
         if (millis() - startTime >= 30000) {
@@ -79,6 +85,7 @@ void connectToServer() {
             NVIC_SystemReset();
         }
         Serial.println("Connection failed, retrying...");
+
         digitalWrite(yellowPin, !digitalRead(yellowPin));
         delay(500);
     }
@@ -169,7 +176,8 @@ void goGreen() {
 void goBlink() {
     //sendConfirmation();
     blink = true;
-    
+    digitalWrite(redPin, LOW);
+    digitalWrite(greenPin, LOW);
     while (blink) {
         Serial.println("Blinking...");
         digitalWrite(yellowPin, !digitalRead(yellowPin));
@@ -180,4 +188,3 @@ void goBlink() {
 }
 
 void sendLightStatus(){}
-

@@ -1,6 +1,10 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 
+//char ssid[] = "TT_F668"; 
+//char password[] = "zsc4at941c"; 
+
+
 char ssid[] = "iPhone de Skander"; 
 char password[] = "123456789b"; 
 
@@ -12,6 +16,12 @@ const int serverPort = 12345;
 const int redPin = 2; 
 const int yellowPin = 3; 
 const int greenPin = 4; 
+
+
+
+enum TrafficLightState { RED, YELLOW, GREEN };
+TrafficLightState currentState;
+
 
 
 // Traffic Light Location
@@ -75,6 +85,8 @@ void connectToServer() {
             NVIC_SystemReset();
         }
         Serial.println("Connection failed, retrying...");
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
         digitalWrite(yellowPin, !digitalRead(yellowPin));
         delay(500);
     }
@@ -165,7 +177,8 @@ void goGreen() {
 void goBlink() {
     //sendConfirmation();
     blink = true;
-    
+      digitalWrite(redPin, LOW);
+      digitalWrite(greenPin, LOW);
     while (blink) {
         Serial.println("Blinking...");
         digitalWrite(yellowPin, !digitalRead(yellowPin));
