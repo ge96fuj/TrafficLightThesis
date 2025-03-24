@@ -9,79 +9,75 @@ app.use(express.json());
 
 
 
-app.get('/status/A', (req, res) => {
-    console.log('current STATUS OF A is :',global.A_Status);
-    res.json({ A_Status: global.A_Status });
-
-});
-
-app.get('/status/B', (req, res) => {
-    console.log('current STATUS OF B is :',global.B_Status);
-    res.json({ B_Status: global.B_Status });
-
-});
-
-app.get('/changeGreen/A', (req, res) => {
-    console.log('Api /changeGreen/A is Triggered  ');
-
-    if (global.interrupt !== 0x00) {
-        console.log('There is already another Interrupt');
-        return res.send("Interrupt already set!");
-    }
-
-    global.interrupt = 0x50 ;
-  
-
-});
-
-app.get('/changeGreen/B', (req, res) => {
-    if (global.interrupt !== 0x00) {
-        console.log('There is already another Interrupt');
-        return res.send("Interrupt already set!");
-        
-    }
-    console.log('Changing Status ');
-    global.interrupt = 0x51 ;
-
-});
-
-
-app.get('/fixGreen/A', (req, res) => {
-    if (global.interrupt !== 0x00) {
-        console.log('There is already another Interrupt');
-        return res.send("Interrupt already set!");
-    }
-    console.log('Fixing A to Green ');
-    global.interrupt = 0x60 ;
-
-});
-
-
-app.get('/fixGreen/B', (req, res) => {
-    if (global.interrupt !== 0x00) {
-        console.log('There is already another Interrupt');
-        return res.send("Interrupt already set!");
-    }
-    console.log('Fixing B To Green  ');
-    global.interrupt = 0x61 ;
-
-});
-
-app.get('/reset', (req, res) => {
-    console.log('Changing Status ');
-    global.interrupt = 0x00 ;
-
-});
-
-
-
-
-
 
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+
+app.get('/changeGreen/:id', (req, res) => {
+    const id = req.params.id;
+    const light = global.lights[id];
+    if (!light) return res.status(404).json({ error: 'Light not found' });
+  
+    // Find the group that contains this light
+    const group = global.trafficGroupsList.find(g => g.lightIDs.includes(id));
+    if (!group) return res.status(404).json({ error: 'Group not found for light ' + id });
+  
+    if (group.interrupt.active) {
+      return res.status(400).json({ error: 'Group is already under interrupt' });
+    }
+  
+    group.interrupt = {
+      active: true,
+      targetID: id
+    };
+  
+    res.json({ message: `✅ Interrupt triggered for ${id} in group ${group.name}` });
+  });
+
+  app.get('/reset/:id', (req, res) => {
+    const id = req.params.id;
+    const light = global.lights[id];
+    if (!light) return res.status(404).json({ error: 'Light not found' });
+  
+    // Find the group that contains this light
+    const group = global.trafficGroupsList.find(g => g.lightIDs.includes(id));
+    if (!group) return res.status(404).json({ error: 'Group not found for light ' + id });
+  
+    if (!group.interrupt.active) {
+      return res.status(400).json({ error: 'No active interrupt for this group' });
+    }
+  
+    group.interrupt = {
+      active: false,
+      targetID: null
+    };
+    res.json({ message: `✅ Interrupt cleared for group ${group.name}` });
+  });
+
+  app.get('/reset/:group', (req, res) => {
+    const groupName = req.params.group;
+    const group = global.trafficGroupsList.find(g => g.name === groupName);
+  
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+  
+    if (!group.interrupt.active) {
+      return res.status(400).json({ error: 'No active interrupt for this group' });
+    }
+  
+    group.interrupt = {
+      active: false,
+      targetID: null
+    };
+  
+    res.json({ message: `✅ Interrupt cleared for group ${group.name}` });
+  });
+
+
 
 
 

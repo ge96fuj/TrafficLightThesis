@@ -1,16 +1,18 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 
+// Wi-Fi Credentials
 char ssid[] = "TT_F668"; 
 char password[] = "zsc4at941c"; 
-
 
 //char ssid[] = "iPhone de Skander"; 
 //char password[] = "123456789b"; 
 
 // Server Configuration
 const char* serverIP = "192.168.1.21"; 
+//const char* serverIP = "172.20.10.2"; 
 const int serverPort = 12345; 
+
 
 // Traffic Light Pins
 const int redPin = 2; 
