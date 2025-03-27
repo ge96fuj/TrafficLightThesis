@@ -181,6 +181,7 @@ function addNewTrafficLight(parsedData, dataLength, socket) {
 //   }
 // }
 async function checkAndLaunchGroups() {
+  console.log("Running checkandlaunch function");
     for (const group of global.trafficGroupsList) {
       const groupName = group.name;
   
@@ -201,6 +202,14 @@ async function checkAndLaunchGroups() {
   }
 
   initializeLightsAndGroups();
+  // setInterval(() => {
+  //   checkAndLaunchGroups().catch(console.error);
+  //  }, 3000);
+
+// run only if all groups are launched 
   setInterval(() => {
-    checkAndLaunchGroups().catch(console.error);
-   }, 3000);
+    const allGroupsLaunched = global.trafficGroupsList.length === global.launchedGroups.size;
+    if (!allGroupsLaunched) {
+      checkAndLaunchGroups().catch(console.error);
+    }
+  }, 3000);
