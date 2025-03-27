@@ -1,7 +1,8 @@
 const net = require('net');
 const { TrafficLight } = require('./TrafficLight');
 const TrafficGroup = require('./TrafficGroup');
-require('./api.js');
+require('./api.js'); 
+require('./mqttBridge.js'); 
 const { spawn } = require('child_process');
 const lightConfig = require('./lightConfig');
 const { Worker } = require('worker_threads');
@@ -9,7 +10,7 @@ const path = require('path');
 
 // SERVER CONFIG 
 IP = '192.168.1.21' ;
-//IP = '172.20.10.2';
+// IP = '172.20.10.2';
 PORT = 12345 ;
 
 global.lights = {};              
@@ -130,9 +131,9 @@ function addNewTrafficLight(parsedData, dataLength, socket) {
   
     for (const [groupName, lightIDs] of Object.entries(groupedIDs)) {
       const group = new TrafficGroup(groupName, lightIDs, {
-        red: 3000,
-        yellow: 1000,
-        green: 5000
+        red: 6000,
+        yellow: 3000,
+        green: 6000
       });
   
       global.trafficGroupsList.push(group);

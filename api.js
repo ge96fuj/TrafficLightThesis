@@ -56,7 +56,7 @@ app.get('/changeGreen/:id', (req, res) => {
     };
     res.json({ message: `✅ Interrupt cleared for group ${group.name}` });
   });
-
+// Stop the interrupt with reset 
   app.get('/reset/:group', (req, res) => {
     const groupName = req.params.group;
     const group = global.trafficGroupsList.find(g => g.name === groupName);

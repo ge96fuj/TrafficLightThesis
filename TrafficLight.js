@@ -21,25 +21,28 @@ class TrafficLight {
 
   async goRed() {
     if (this.isConnected()) {
-      await goRed(this.socket, this.id);
       this.status = TrafficLightStatus.RED;
+
+      await goRed(this.socket, this.id);
     }
   }
 
   async goYellow() {
     if (this.isConnected()) {
-      await goYellow(this.socket, this.id);
       this.status =
         this.status === TrafficLightStatus.RED
           ? TrafficLightStatus.YELLOW_TO_G
           : TrafficLightStatus.YELLOW_TO_R;
-    }
+     await goYellow(this.socket, this.id);
+
+        }
   }
 
   async goGreen() {
     if (this.isConnected()) {
-      await goGreen(this.socket, this.id);
       this.status = TrafficLightStatus.GREEN;
+      await goGreen(this.socket, this.id);
+      
     }
   }
 

@@ -14,7 +14,7 @@ module.exports = [
     ,
     {
       id: 'C2',
-      group: 'AB',
+      group: 'C2',
       localization_x: 0,
       localization_y: 1
     },

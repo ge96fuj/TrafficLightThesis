@@ -76,7 +76,7 @@ class TrafficGroup {
               await this.sleep(1000);
             }
             await light.goRed();
-            light.changeStatus(TrafficLightStatus.RED);
+            // light.changeStatus(TrafficLightStatus.RED);
     
             // Jump to target 
             this.currentIndex = this.lights.findIndex(l => l.id === this.interrupt.targetID);
@@ -95,7 +95,7 @@ class TrafficGroup {
 
       console.log(`[${this.name}] ${step.log} → ${light.id}`);
       await light[step.action]();
-      light.changeStatus(this.state);
+      // light.changeStatus(this.state);
 
       this.state = (this.state + 1) % 4;
 
@@ -113,7 +113,7 @@ class TrafficGroup {
 
     console.log(`🟢 [${this.name}] ${targetID} → GREEN (holding for interrupt)`);
     await targetLight.goGreen();
-    targetLight.changeStatus(TrafficLightStatus.GREEN);
+    // targetLight.changeStatus(TrafficLightStatus.GREEN);
 
     while (this.interrupt.active) {
       await this.sleep(1000);
@@ -135,8 +135,9 @@ class TrafficGroup {
     
     for (const light of this.lights) {
       if (light.isConnected()) {
+        // light.changeStatus(TrafficLightStatus.RED);
         await light.goRed();
-        light.changeStatus(TrafficLightStatus.RED);
+        
       } else {
         console.warn(`⚠️ [${this.name}] Light ${light.id} is not connected. Skipped.`);
       }
