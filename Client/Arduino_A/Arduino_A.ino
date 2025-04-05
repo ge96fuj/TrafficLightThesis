@@ -1,27 +1,26 @@
-#include <WiFiNINA.h>
+#include <WiFi101.h>
 #include <ArduinoJson.h>
 
+// Wi-Fi Credentials
 char ssid[] = "TT_F668"; 
 char password[] = "zsc4at941c"; 
-
 
 //char ssid[] = "iPhone de Skander"; 
 //char password[] = "123456789b"; 
 
 // Server Configuration
 const char* serverIP = "192.168.1.21"; 
+//const char* serverIP = "172.20.10.2"; 
 const int serverPort = 12345; 
+
+enum TrafficLightState { RED, YELLOW, GREEN };
+TrafficLightState currentState;
+
 
 // Traffic Light Pins
 const int redPin = 2; 
 const int yellowPin = 3; 
 const int greenPin = 4; 
-
-
-
-enum TrafficLightState { RED, YELLOW, GREEN };
-TrafficLightState currentState;
-
 
 
 // Traffic Light Location
@@ -51,9 +50,9 @@ void setup() {
 void loop() {
     // Reconnect if the client is disconnected
     if (!client.connected()) {
-        Serial.println("Lost connection to server, reconnecting...");
         digitalWrite(redPin, LOW);
         digitalWrite(greenPin, LOW);
+        Serial.println("Lost connection to server, reconnecting...");
         client.stop();
         connectToServer();
     }
@@ -80,6 +79,8 @@ void connectToWiFi() {
 void connectToServer() {
     Serial.print("Connecting to server...");
     unsigned long startTime = millis();
+    digitalWrite(redPin, LOW);
+    digitalWrite(greenPin, LOW);
     
     while (!client.connect(serverIP, serverPort)) {
         if (millis() - startTime >= 30000) {
@@ -87,8 +88,7 @@ void connectToServer() {
             NVIC_SystemReset();
         }
         Serial.println("Connection failed, retrying...");
-        digitalWrite(redPin, LOW);
-        digitalWrite(greenPin, LOW);
+
         digitalWrite(yellowPin, !digitalRead(yellowPin));
         delay(500);
     }
@@ -104,7 +104,7 @@ void handleRequests() {
     }
     
     if (client.available()) {
-     
+   
         char request = client.read();
         Serial.print("Received request: ");
         Serial.println(request, HEX);
@@ -124,7 +124,7 @@ void handleRequests() {
 void sendStatus() {
     StaticJsonDocument<200> doc;
     doc["command"] = 60;
-    doc["lightID"] = "B2";
+    doc["lightID"] = "A2";
     doc["loc_x"] = locX;
     doc["loc_y"] = locY;
     doc["lightStatus"] = currentState;
@@ -138,7 +138,7 @@ void sendStatus() {
 void sendConfirmation() {
     StaticJsonDocument<200> doc;
     doc["command"] = 90;
-    doc["lightID"] = "B2";
+    doc["lightID"] = "A2";
     
     String jsonString;
     serializeJson(doc, jsonString);
@@ -179,8 +179,8 @@ void goGreen() {
 void goBlink() {
     //sendConfirmation();
     blink = true;
-      digitalWrite(redPin, LOW);
-      digitalWrite(greenPin, LOW);
+    digitalWrite(redPin, LOW);
+    digitalWrite(greenPin, LOW);
     while (blink) {
         Serial.println("Blinking...");
         digitalWrite(yellowPin, !digitalRead(yellowPin));
@@ -191,4 +191,3 @@ void goBlink() {
 }
 
 void sendLightStatus(){}
-
